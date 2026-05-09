@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cctype>
 using namespace std;
 
 
@@ -35,6 +36,14 @@ void addDoctor();
 void viewDoctors();
 void searchDoctor();
 void updateDoctor();
+
+bool validName(string name);
+bool validDepartment(string dept);
+bool validSpecialization(string spec);
+bool validTiming(string timing);
+bool validAvailability(string status);
+bool validExperience(string exp);
+
 
 
 
@@ -71,6 +80,123 @@ int main() {
                             /*    Definition of Functions    */
 
 
+/*             Validation Functions                 */
+
+
+bool validName(string name)
+{
+    if(name.empty())
+        return false;
+
+    if(name[0] == ' ' || name[name.length() - 1] == ' ')
+        return false;
+
+    for(int i = 0; i < name.length(); i++)
+    {
+        if(!isalpha(name[i]) && name[i] != ' ')
+        {
+            return false;
+        }
+
+        // Prevent double spaces
+        if(name[i] == ' ' && name[i + 1] == ' ')
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool validDepartment(string dept)
+{
+    if(dept.empty())
+        return false;
+
+    for(int i = 0; i < dept.length(); i++)
+    {
+        if(!isalpha(dept[i]) &&
+           dept[i] != ' ' &&
+           dept[i] != '&')
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool validSpecialization(string spec)
+{
+    if(spec.empty())
+        return false;
+
+    for(int i = 0; i < spec.length(); i++)
+    {
+        if(!isalpha(spec[i]) && spec[i] != ' ')
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool validTiming(string timing)
+{
+    if(timing.empty())
+        return false;
+
+    for(int i = 0; i < timing.length(); i++)
+    {
+        if(!isdigit(timing[i]) &&
+           !isalpha(timing[i]) &&
+           timing[i] != ':' &&
+           timing[i] != '-' &&
+           timing[i] != ' ')
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool validAvailability(string status)
+{
+    return (status == "Available" ||
+            status == "Busy");
+}
+
+
+
+bool validExperience(string exp)
+{
+    if(exp.empty())
+        return false;
+
+    for(int i = 0; i < exp.length(); i++)
+    {
+        char c = exp[i];
+
+        if(isdigit(c))
+            continue;
+
+        if(c == ' ')
+            continue;
+
+        if(isalpha(c))
+            continue;
+
+        return false;
+    }
+
+    return true;
+}
+
+
+                        
 /*        Loading Doctors       */
 
 
@@ -157,7 +283,7 @@ do  {
 
     switch(choice) 
         {
-
+            
             case 1: addDoctor(); break;
             case 2: viewDoctors(); break;
             case 3: searchDoctor(); break;
@@ -182,6 +308,21 @@ void addDoctor()
 cout << "Enter Doctor ID: ";
     cin >> newDoc.id;
 
+        if(cin.fail())
+    {
+        cin.clear();
+        cin.ignore(1000, '\n');
+
+        cout << "Invalid ID!\n";
+        return;
+    }
+
+    if(newDoc.id <= 0)
+{
+    cout << "Invalid ID!\n";
+    return;
+}
+
     cin.ignore();
 
 
@@ -197,20 +338,65 @@ cout << "Enter Doctor ID: ";
     cout << "Enter Name: ";
     getline(cin, newDoc.name);
 
+    if(!validName(newDoc.name))
+    {
+        cout << "Invalid Name!\n";
+        return;
+    }
+
+
     cout << "Enter Specialization: ";
     getline(cin, newDoc.specialization);
+
+    if(!validSpecialization(newDoc.specialization))
+    {
+        cout << "Invalid Specialization!\n";
+        return;
+    }
+
+
 
     cout << "Enter Department: ";
     getline(cin, newDoc.department);
 
+    if(!validDepartment(newDoc.department))
+    {
+        cout << "Invalid Department!\n";
+        return;
+    }
+
+
+
     cout << "Enter Timing: ";
     getline(cin, newDoc.timing);
+
+        if(!validTiming(newDoc.timing))
+    {
+        cout << "Invalid Timing!\n";
+        return;
+    }
+
+
 
     cout << "Enter Availability: ";
     getline(cin, newDoc.availability);
 
+    if(!validAvailability(newDoc.availability))
+    {
+        cout << "Invalid Availability!\n";
+        return;
+    }
+
+
+
     cout << "Enter Experience: ";
     getline(cin, newDoc.experience);
+
+    if(!validExperience(newDoc.experience))
+    {
+        cout << "Invalid Experience!\n";
+        return;
+    }
 
 
 
@@ -245,7 +431,7 @@ void viewDoctors()
 
     for(int i = 0; i < count; i++)
     {
-        cout << "\nDoctor " << i + 1;
+        cout << "\nDoctor: " << i + 1;
 
         cout << "\nID: " << doctors[i].id;
         cout << "\nName: " << doctors[i].name;
@@ -269,6 +455,15 @@ void searchDoctor()
 
     cout << "\nEnter Doctor ID: ";
     cin >> searchID;
+
+        if(cin.fail())
+    {
+        cin.clear();
+        cin.ignore(1000, '\n');
+
+        cout << "Invalid ID!\n";
+        return;
+    }
 
     for(int i = 0; i < count; i++)
     {
@@ -295,6 +490,8 @@ void searchDoctor()
 
 
 /*          For Corrections            */
+
+
 void updateDoctor()
 {
     int id;
@@ -303,6 +500,15 @@ void updateDoctor()
 
     cout << "Enter Doctor ID to update: ";
     cin >> id;
+
+    if(cin.fail() || id <= 0)
+    {
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "Invalid ID!\n";
+        return;
+    }
+
     cin.ignore();
 
     for(int i = 0; i < count; i++)
@@ -321,58 +527,106 @@ void updateDoctor()
 
             cout << "\n--- UPDATE OPTIONS ---\n";
 
+            // NAME
             cout << "Change Name? (y/n): ";
             cin >> choice;
             cin.ignore();
+
             if(choice == 'y' || choice == 'Y')
             {
+                string temp;
                 cout << "Enter new name: ";
-                getline(cin, doctors[i].name);
+                getline(cin, temp);
+
+                if(validName(temp))
+                    doctors[i].name = temp;
+                else
+                    cout << "Invalid Name! Not Updated.\n";
             }
 
+            // SPECIALIZATION
             cout << "Change Specialization? (y/n): ";
             cin >> choice;
             cin.ignore();
+
             if(choice == 'y' || choice == 'Y')
             {
+                string temp;
                 cout << "Enter new specialization: ";
-                getline(cin, doctors[i].specialization);
+                getline(cin, temp);
+
+                if(validSpecialization(temp))
+                    doctors[i].specialization = temp;
+                else
+                    cout << "Invalid Specialization!\n";
             }
 
+            // DEPARTMENT
             cout << "Change Department? (y/n): ";
             cin >> choice;
             cin.ignore();
+
             if(choice == 'y' || choice == 'Y')
             {
+                string temp;
                 cout << "Enter new department: ";
-                getline(cin, doctors[i].department);
+                getline(cin, temp);
+
+                if(validDepartment(temp))
+                    doctors[i].department = temp;
+                else
+                    cout << "Invalid Department!\n";
             }
 
+            // TIMING
             cout << "Change Timing? (y/n): ";
             cin >> choice;
             cin.ignore();
+
             if(choice == 'y' || choice == 'Y')
             {
+                string temp;
                 cout << "Enter new timing: ";
-                getline(cin, doctors[i].timing);
+                getline(cin, temp);
+
+                if(validTiming(temp))
+                    doctors[i].timing = temp;
+                else
+                    cout << "Invalid Timing!\n";
             }
 
+            // AVAILABILITY
             cout << "Change Availability? (y/n): ";
             cin >> choice;
             cin.ignore();
+
             if(choice == 'y' || choice == 'Y')
             {
-                cout << "Enter new availability: ";
-                getline(cin, doctors[i].availability);
+                string temp;
+                cout << "Enter (Available/Busy): ";
+                getline(cin, temp);
+
+                if(validAvailability(temp))
+                    doctors[i].availability = temp;
+                else
+                    cout << "Invalid Availability!\n";
             }
 
+            // EXPERIENCE
             cout << "Change Experience? (y/n): ";
             cin >> choice;
             cin.ignore();
+
             if(choice == 'y' || choice == 'Y')
             {
-                cout << "Enter new experience: ";
-                getline(cin, doctors[i].experience);
+                string temp;
+                cout << "Enter experience: ";
+                getline(cin, temp);
+
+                if(validExperience(temp))
+                    doctors[i].experience = temp;
+                else
+                    cout << "Invalid Experience!\n";
             }
 
             saveDoctors();
@@ -383,9 +637,8 @@ void updateDoctor()
     }
 
     if(!found)
-    {
         cout << "\nDoctor Not Found!\n";
-    }
 }
+
 
 
