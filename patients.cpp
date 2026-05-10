@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <ctime>
+#include <sstream> // had to add this for csv handling
 using namespace std;
 // some bugs are left to fix, and the csv accessing problem still persists, thora time or lagay ga
 // everyone can check and tell me whatevers wrong
@@ -35,25 +36,78 @@ struct PatientManager {
     
     double RATE_PER_DAY = 500.0;
     string FILENAME = "patientsinfo.csv";
+// had to change the function and use sstream for easier and better execution.
+  int displayAllPatients() {
+        // Load patients from CSV into the in-memory array, then display them.
+        ifstream file(FILENAME);
+        if (!file.is_open()) {
+            cout << "Error opening file\n";
+            return 1;
+        }
 
- void displayAllPatients() {
-    if (patientCount == 0) {
-        cout << "\nNo patients currently admitted.\n";
-        return;
-    }
+        patientCount = 0; // reset before loading
 
-    for (int i = 0; i < patientCount; i++) {
-        cout <<"patients ID: "<< patients[i].patientID << "\n"
-             <<"name: "<<patients[i].name<< "\n" 
-             <<"age: "<< patients[i].age << "\n"
-             <<"disease: "<< patients[i].disease << "\n"
-             <<"blood group: "<< patients[i].bloodGroup << "\n"
-             <<"date of admission: "<< patients[i].admissionDate << "\n"
-             <<"total bill for stay: "<< "$" << patients[i].totalBill << "\n";
-    }
-    }
+        string line;
+        while (getline(file, line)) {
+            if (line.empty()) continue;
+            if (patientCount >= TOTAL_HOSPITAL_BEDS) break;
 
-}
+            // Expected fields based on savePatients():
+            // id,name,age,disease,bloodGroup,admissionDate,totalBill
+            // But patientsinfo.csv may sometimes omit totalBill (6 fields). Handle both.
+            string token;
+            stringstream ss(line);
+            Patient p{};
+
+            // 1) id
+            if (!getline(ss, token, ',')) continue;
+            p.patientID = stoi(token);
+
+            // 2) name
+            if (!getline(ss, token, ',')) token = "";
+            p.name = token;
+
+            // 3) age
+            if (!getline(ss, token, ',')) token = "0";
+            p.age = stoi(token);
+
+            // 4) disease
+            if (!getline(ss, token, ',')) token = "";
+            p.disease = token;
+
+            // 5) bloodGroup
+            if (!getline(ss, token, ',')) token = "";
+            p.bloodGroup = token;
+
+            // 6) admissionDate
+            if (!getline(ss, token, ',')) token = "";
+            p.admissionDate = token;
+
+            // 7) totalBill (optional)
+            if (getline(ss, token, ',')) {
+                p.totalBill = token.empty() ? 0.0 : stod(token);
+            } else {
+                p.totalBill = 0.0;
+            }
+
+            patients[patientCount] = p;
+            patientCount++;
+        }
+
+        file.close();
+
+        for (int i = 0; i < patientCount; i++) {
+            cout << "patients ID: " << patients[i].patientID << "\n"
+                 << "name: " << patients[i].name << "\n"
+                 << "age: " << patients[i].age << "\n"
+                 << "disease: " << patients[i].disease << "\n"
+                 << "blood group: " << patients[i].bloodGroup << "\n"
+                 << "date of admission: " << patients[i].admissionDate << "\n"
+                 << "total bill for stay: $" << patients[i].totalBill << "\n";
+        }
+        cout << "--------------------------------------------------------------------------------\n";
+        return 0;
+    }
 
 void savePatients() {
         ofstream file(FILENAME);
