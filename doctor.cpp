@@ -283,7 +283,7 @@ do  {
 
     switch(choice) 
         {
-            
+            case 0: cout << "Returning...\n";break;
             case 1: addDoctor(); break;
             case 2: viewDoctors(); break;
             case 3: searchDoctor(); break;
@@ -639,6 +639,5 @@ void updateDoctor()
     if(!found)
         cout << "\nDoctor Not Found!\n";
 }
-
 
 
