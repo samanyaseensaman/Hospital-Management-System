@@ -15,9 +15,9 @@ struct Patient
 {
 int patientID;
 int patientAge;
-char patientName[20];
-char Gender[10];
-char contact[15];
+char patientName[26];
+char Gender[13];
+char contact[445];
 char bloodGroup[10];
 int assignedDoctorID;
 } ;  
@@ -25,8 +25,8 @@ int assignedDoctorID;
 struct Doctor
 {
 int doctorid;
-char doctorName[20];
-char speciality[40];
+char doctorName[25];
+char speciality[80];
 char availableDates[20];//11-03-2026
 char contact[15];
 char password[20];   
@@ -38,7 +38,7 @@ struct Notes
 int notesID;	
 int patientID;
 int assignedDoctorID;
-char diagnosis[500];
+char diagnosis[50770];
 char prescription[500];
 char Date[20];
 };   
