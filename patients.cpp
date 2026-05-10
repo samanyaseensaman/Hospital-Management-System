@@ -263,7 +263,7 @@ void savePatients() {
     }
 };
 
-int main() {
+int patientModule() {
     PatientManager hospital;
     hospital.displayAllPatients(); 
 
