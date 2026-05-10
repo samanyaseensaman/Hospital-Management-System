@@ -100,6 +100,7 @@ struct PatientManager {
                  << "blood group: " << patients[i].bloodGroup << "\n"
                  << "date of admission: " << patients[i].admissionDate << "\n"
                  << "total bill for stay: $" << patients[i].totalBill << "\n";
+                cout<<endl;
         }
         cout << "--------------------------------------------------------------------------------\n";
         return 0;
@@ -139,6 +140,7 @@ void savePatients() {
                 cout << "Blood Group: " << patients[i].bloodGroup << "\n";
                 cout << "Admission Date: " << patients[i].admissionDate << "\n";
                 cout << "Current Bill: $" << patients[i].totalBill << "\n";
+                cout<<endl;
                 return;
             }
         }
@@ -232,6 +234,7 @@ void savePatients() {
         cout << "Total Beds: " << TOTAL_HOSPITAL_BEDS << "\n";
         cout << "Occupied Beds: " << patientCount << "\n";
         cout << "Available Beds: " << available << "\n";
+        cout<<endl;
     }
 
    
@@ -277,6 +280,7 @@ int patientModule() {
         cout << "7. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
+        cout<<endl;
 
         switch (choice) {
             case 1:
