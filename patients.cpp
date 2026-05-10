@@ -38,7 +38,7 @@ struct PatientManager {
     string FILENAME = "patientsinfo.csv";
 // had to change the function and use sstream for easier and better execution.
   int displayAllPatients() {
-        // Load patients from CSV into the in-memory array, then display them.
+        // Load patients from CSV aahhhhhg ajeeb kam. done anyways
         ifstream file(FILENAME);
         if (!file.is_open()) {
             cout << "Error opening file\n";
@@ -52,30 +52,26 @@ struct PatientManager {
             if (line.empty()) continue;
             if (patientCount >= TOTAL_HOSPITAL_BEDS) break;
 
-            // Expected fields based on savePatients():
-            // id,name,age,disease,bloodGroup,admissionDate,totalBill
-            // But patientsinfo.csv may sometimes omit totalBill (6 fields). Handle both.
             string token;
             stringstream ss(line);
             Patient p{};
 
-            // 1) id
+           
             if (!getline(ss, token, ',')) continue;
             p.patientID = stoi(token);
 
-            // 2) name
+           
             if (!getline(ss, token, ',')) token = "";
             p.name = token;
 
-            // 3) age
+            
             if (!getline(ss, token, ',')) token = "0";
             p.age = stoi(token);
 
-            // 4) disease
+         
             if (!getline(ss, token, ',')) token = "";
             p.disease = token;
 
-            // 5) bloodGroup
             if (!getline(ss, token, ',')) token = "";
             p.bloodGroup = token;
 
@@ -83,7 +79,7 @@ struct PatientManager {
             if (!getline(ss, token, ',')) token = "";
             p.admissionDate = token;
 
-            // 7) totalBill (optional)
+            
             if (getline(ss, token, ',')) {
                 p.totalBill = token.empty() ? 0.0 : stod(token);
             } else {
