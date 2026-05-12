@@ -2,14 +2,14 @@
 #include <fstream>
 #include <string>
 #include <cctype>
+#include <limits>
 using namespace std;
-
 
 /*       Structures For Doctor           */
 
 struct Doctor
 {
-    int id;
+    string id;
     string name;
     string specialization;
     string department;
@@ -18,26 +18,25 @@ struct Doctor
     string experience;
 };
 
-/*       For DMA     */
+/*       For Dynamic Memory Allocation     */
 
 Doctor* doctors = nullptr;
 int count = 0;
 
-
-
-/*       Functions     */
+/*       Functions        */
 
 void loadDoctors();
 void saveDoctors();
-
 void doctorMenu();
-
 void addDoctor();
 void viewDoctors();
 void searchDoctor();
 void updateDoctor();
+void deleteDoctor();
 
 bool validName(string name);
+string getValidDoctorID();
+int getValidChoice(int min, int max);
 
 string selectSpecialization();
 string selectDepartment();
@@ -45,45 +44,119 @@ string selectAvailability();
 string selectExperience();
 string selectTiming();
 
+/* Main function */
 
+int main() {                          //USE LOADDOCTORS IN BEGINNING OF MAIN AND DELETE[]DOCTORS AT END 
 
-
-
-/* main file just for testing WILL REMOVE LATER */
-
-int main() {
-
-    loadDoctors(); 
+    loadDoctors(); //loads doctors into memory
 
     int choice;
 
     do {
-
-        cout << "\n===== HOSPITAL SYSTEM =====";
+        cout << "\n===== HOSPITAL MANAGEMENT SYSTEM =====";
         cout << "\n1. Doctor Module";
         cout << "\n0. Exit";
         cout << "\nEnter choice: ";
-        cin >> choice;
+        choice = getValidChoice(0, 1);
 
         switch(choice) {
-
             case 1:
                 doctorMenu();
+                break;
+            case 0:
+                cout << "\nExiting system...\n";
                 break;
         }
 
     } while(choice != 0);
 
-
     delete[] doctors;
     return 0;
 }
 
-                            /*    Definition of Functions    */
+/*    Definition of Functions    */
 
+/*    Helper function for input validation    */
 
-/*             Validation Functions                 */
+int getValidChoice(int min, int max)
+{
+    int choice;
+    while(true)
+    {
+        cin >> choice;
+        
+        if(cin.fail())
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input! Enter a number between " << min << " and " << max << ": ";
+        }
+        else if(choice < min || choice > max)
+        {
+            cout << "Invalid choice! Enter a number between " << min << " and " << max << ": ";
+        }
+        else
+        {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return choice;
+        }
+    }
+}
 
+/*    Validation Functions    */
+
+string getValidDoctorID()
+{
+    string id;
+
+    while(true)
+    {
+        cout << "Enter Doctor ID (letters/numbers allowed): ";
+        getline(cin, id);
+
+        if(id.empty())
+        {
+            cout << "ID cannot be empty!\n";
+            continue;
+        }
+
+        bool hasValidChar = false;
+        for(int i = 0; i < id.length(); i++)
+        {
+            if(isalnum(id[i]))
+            {
+                hasValidChar = true;
+            }
+            else
+            {
+                cout << "ID can only contain letters and numbers!\n";
+                hasValidChar = false;
+                break;
+            }
+        }
+
+        if(!hasValidChar)
+            continue;
+
+        bool exists = false;
+        for(int i = 0; i < count; i++)
+        {
+            if(doctors[i].id == id)
+            {
+                exists = true;
+                break;
+            }
+        }
+
+        if(exists)
+        {
+            cout << "ID already exists! Please enter a unique ID.\n";
+            continue;
+        }
+
+        return id;
+    }
+}
 
 bool validName(string name)
 {
@@ -100,8 +173,7 @@ bool validName(string name)
             return false;
         }
 
-        // Prevent double spaces
-        if(name[i] == ' ' && name[i + 1] == ' ')
+        if(i < name.length() - 1 && name[i] == ' ' && name[i + 1] == ' ')
         {
             return false;
         }
@@ -110,34 +182,7 @@ bool validName(string name)
     return true;
 }
 
-
-bool validTiming(string timing)
-{
-    if(timing.empty())
-        return false;
-
-    for(int i = 0; i < timing.length(); i++)
-    {
-        if(!isdigit(timing[i]) &&
-           !isalpha(timing[i]) &&
-           timing[i] != ':' &&
-           timing[i] != '-' &&
-           timing[i] != ' ')
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-
-
-
-
-                        
-/*        Loading Doctors       */
-
+/*    Loading Doctors    */
 
 void loadDoctors()
 {
@@ -146,13 +191,24 @@ void loadDoctors()
     count = 0;
 
     ifstream file("doctors.csv");
-    if(!file) return;
+    if(!file)
+    {
+        cout << "No existing data file found. Starting fresh.\n";
+        return;
+    }
 
     string line;
     while(getline(file, line))
-        count++;
+    {
+        if(!line.empty())
+            count++;
+    }
 
-    if(count == 0) return;
+    if(count == 0)
+    {
+        file.close();
+        return;
+    }
 
     doctors = new Doctor[count];
 
@@ -161,11 +217,7 @@ void loadDoctors()
 
     for(int i = 0; i < count; i++)
     {
-        string idStr;
-
-        getline(file, idStr, ',');
-        doctors[i].id = stoi(idStr);
-
+        getline(file, doctors[i].id, ',');
         getline(file, doctors[i].name, ',');
         getline(file, doctors[i].specialization, ',');
         getline(file, doctors[i].department, ',');
@@ -175,15 +227,20 @@ void loadDoctors()
     }
 
     file.close();
+    cout << "Loaded " << count << " doctor(s) from database.\n";
 }
 
-
-
-/*          Save Doctors         */
+/*    Save Doctors    */
 
 void saveDoctors()
 {
     ofstream file("doctors.csv");
+
+    if(!file)
+    {
+        cout << "Error: Could not save to file!\n";
+        return;
+    }
 
     for(int i = 0; i < count; i++)
     {
@@ -199,113 +256,106 @@ void saveDoctors()
     file.close();
 }
 
-
-
-/*         DOCTOR MENU FUNCITON        */
+/*    DOCTOR MENU FUNCTION    */
 
 void doctorMenu()
 {
+    int choice;
 
-int choice;
-
-do  {
-    cout << "\n===== DOCTOR MENU =====";
+    do {
+        cout << "\n===== DOCTOR MENU =====";
         cout << "\n1. Add Doctor";
-        cout << "\n2. View Doctors";
+        cout << "\n2. View All Doctors";
         cout << "\n3. Search Doctor";
-        cout << "\n4. Update Information";
-        cout << "\n0. Back";
+        cout << "\n4. Update Doctor Information";
+        cout << "\n5. Delete Doctor";
+        cout << "\n0. Back to Main Menu";
         cout << "\nEnter choice: ";
-        cin >> choice;
-    
+        choice = getValidChoice(0, 5);
 
-
-    switch(choice) 
+        switch(choice)
         {
-            case 0: cout << "Returning...\n";break;
-            case 1: addDoctor(); break;
-            case 2: viewDoctors(); break;
-            case 3: searchDoctor(); break;
-            case 4: updateDoctor(); break;
-            default:
-            cout << "Invalid choice!\n";
+            case 0:
+                cout << "Returning to main menu...\n";
+                break;
+            case 1:
+                addDoctor();
+                break;
+            case 2:
+                viewDoctors();
+                break;
+            case 3:
+                searchDoctor();
+                break;
+            case 4:
+                updateDoctor();
+                break;
+            case 5:
+                deleteDoctor();
+                break;
         }
-}while(choice !=0);
+    } while(choice != 0);
 }
 
-
-
-
-/*             Add Doctor               */
+/*    Add Doctor    */
 
 void addDoctor()
-
 {
+    cout << "\n===== ADD NEW DOCTOR =====\n";
 
     Doctor newDoc;
 
-cout << "Enter Doctor ID: ";
-    cin >> newDoc.id;
-
-        if(cin.fail())
-    {
-        cin.clear();
-        cin.ignore(1000, '\n');
-
-        cout << "Invalid ID!\n";
-        return;
-    }
-
-    if(newDoc.id <= 0)
-{
-    cout << "Invalid ID!\n";
-    return;
-}
-
-    cin.ignore();
-
-
-      for(int i = 0; i < count; i++)
-    {
-        if(doctors[i].id == newDoc.id)
-        {
-            cout << "Doctor ID already exists!\n";
-            return;
-        }
-    }
+    newDoc.id = getValidDoctorID();
 
     cout << "Enter Name: ";
     getline(cin, newDoc.name);
 
     if(!validName(newDoc.name))
     {
-        cout << "Invalid Name!\n";
+        cout << "Invalid Name! Only letters and spaces allowed.\n";
         return;
     }
 
-
-     newDoc.specialization = selectSpecialization();
-    if(newDoc.specialization == "Invalid") return;
-
+    newDoc.specialization = selectSpecialization();
+    if(newDoc.specialization == "Invalid")
+    {
+        cout << "Operation cancelled.\n";
+        return;
+    }
 
     newDoc.department = selectDepartment();
-    if(newDoc.department == "Invalid") return;
-
-    newDoc.availability = selectAvailability();
-    if(newDoc.availability == "Invalid") return;
-
-    newDoc.experience = selectExperience();
-    if(newDoc.experience == "Invalid") return;
+    if(newDoc.department == "Invalid")
+    {
+        cout << "Operation cancelled.\n";
+        return;
+    }
 
     newDoc.timing = selectTiming();
-    if(newDoc.timing == "Invalid") return;
+    if(newDoc.timing == "Invalid")
+    {
+        cout << "Operation cancelled.\n";
+        return;
+    }
 
+    newDoc.availability = selectAvailability();
+    if(newDoc.availability == "Invalid")
+    {
+        cout << "Operation cancelled.\n";
+        return;
+    }
 
+    newDoc.experience = selectExperience();
+    if(newDoc.experience == "Invalid")
+    {
+        cout << "Operation cancelled.\n";
+        return;
+    }
 
+    // Dynamic array expansion
     Doctor* temp = new Doctor[count + 1];
 
     for(int i = 0; i < count; i++)
-        temp[i] = doctors[i];
+        temp[i] = doctors[i]; //copies old data
 
     temp[count] = newDoc;
 
@@ -315,26 +365,24 @@ cout << "Enter Doctor ID: ";
 
     saveDoctors();
 
-    cout << "\nDoctor Added Successfully!\n";
+    cout << "\n✓ Doctor Added Successfully!\n";
 }
 
-/*         View Doctors           */
-
+/*    View Doctors    */
 
 void viewDoctors()
 {
     if(count == 0)
     {
-        cout << "\nNo Doctors Found!\n";
+        cout << "\n⚠ No Doctors Found in System!\n";
         return;
     }
 
-    cout << "\n===== DOCTOR LIST =====\n";
+    cout << "\n===== DOCTOR LIST (" << count << " Total) =====\n";
 
     for(int i = 0; i < count; i++)
     {
-        cout << "\nDoctor: " << i + 1;
-
+        cout << "\n--- Doctor #" << (i + 1) << " ---";
         cout << "\nID: " << doctors[i].id;
         cout << "\nName: " << doctors[i].name;
         cout << "\nSpecialization: " << doctors[i].specialization;
@@ -342,30 +390,25 @@ void viewDoctors()
         cout << "\nTiming: " << doctors[i].timing;
         cout << "\nAvailability: " << doctors[i].availability;
         cout << "\nExperience: " << doctors[i].experience;
-
-        cout << "\n----------------------";
+        cout << "\n" << string(30, '-');
     }
 }
 
-
-/*          Search Doctor          */
+/*    Search Doctor    */
 
 void searchDoctor()
 {
-    int searchID;
-    bool found = false;
-
-    cout << "\nEnter Doctor ID: ";
-    cin >> searchID;
-
-        if(cin.fail())
+    if(count == 0)
     {
-        cin.clear();
-        cin.ignore(1000, '\n');
-
-        cout << "Invalid ID!\n";
+        cout << "\n⚠ No Doctors in System!\n";
         return;
     }
+
+    string searchID;
+    bool found = false;
+
+    cout << "\nEnter Doctor ID to search: ";
+    getline(cin, searchID);
 
     for(int i = 0; i < count; i++)
     {
@@ -373,45 +416,39 @@ void searchDoctor()
         {
             found = true;
 
-            cout << "\nDoctor Found!\n";
+            cout << "\n✓ Doctor Found!\n";
+            cout << "\n--- Details ---";
             cout << "\nID: " << doctors[i].id;
             cout << "\nName: " << doctors[i].name;
             cout << "\nSpecialization: " << doctors[i].specialization;
             cout << "\nDepartment: " << doctors[i].department;
             cout << "\nTiming: " << doctors[i].timing;
             cout << "\nAvailability: " << doctors[i].availability;
-            cout << "\nExperience: " << doctors[i].experience;
+            cout << "\nExperience: " << doctors[i].experience << "\n";
             break;
         }
     }
 
     if(!found)
-        cout << "\nDoctor Not Found!\n";
+        cout << "\n⚠ Doctor with ID '" << searchID << "' not found!\n";
 }
 
-
-
-/*          For Corrections            */
-
+/*    Update Doctor    */
 
 void updateDoctor()
 {
-    int id;
-    bool found = false;
-    char choice;
-
-    cout << "Enter Doctor ID to update: ";
-    cin >> id;
-
-    if(cin.fail() || id <= 0)
+    if(count == 0)
     {
-        cin.clear();
-        cin.ignore(1000, '\n');
-        cout << "Invalid ID!\n";
+        cout << "\n⚠ No Doctors in System!\n";
         return;
     }
 
-    cin.ignore();
+    string id;
+    bool found = false;
+    char choice;
+
+    cout << "\nEnter Doctor ID to update: ";
+    getline(cin, id);
 
     for(int i = 0; i < count; i++)
     {
@@ -432,7 +469,7 @@ void updateDoctor()
             // NAME
             cout << "Change Name? (y/n): ";
             cin >> choice;
-            cin.ignore();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
             if(choice == 'y' || choice == 'Y')
             {
@@ -447,38 +484,136 @@ void updateDoctor()
             }
 
             // SPECIALIZATION
-            doctors[i].specialization = selectSpecialization();
+            cout << "Change Specialization? (y/n): ";
+            cin >> choice;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
+            if(choice == 'y' || choice == 'Y')
+            {
+                string temp = selectSpecialization();
+                if(temp != "Invalid")
+                    doctors[i].specialization = temp;
+            }
 
             // DEPARTMENT
-            doctors[i].department = selectDepartment();
+            cout << "Change Department? (y/n): ";
+            cin >> choice;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if(choice == 'y' || choice == 'Y')
+            {
+                string temp = selectDepartment();
+                if(temp != "Invalid")
+                    doctors[i].department = temp;
+            }
 
             // TIMING
-            doctors[i].timing = selectTiming();
-      
+            cout << "Change Timing? (y/n): ";
+            cin >> choice;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if(choice == 'y' || choice == 'Y')
+            {
+                string temp = selectTiming();
+                if(temp != "Invalid")
+                    doctors[i].timing = temp;
+            }
+
             // AVAILABILITY
-            doctors[i].availability = selectAvailability();
+            cout << "Change Availability? (y/n): ";
+            cin >> choice;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if(choice == 'y' || choice == 'Y')
+            {
+                string temp = selectAvailability();
+                if(temp != "Invalid")
+                    doctors[i].availability = temp;
+            }
 
             // EXPERIENCE
-            doctors[i].experience = selectExperience();
+            cout << "Change Experience? (y/n): ";
+            cin >> choice;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if(choice == 'y' || choice == 'Y')
+            {
+                string temp = selectExperience();
+                if(temp != "Invalid")
+                    doctors[i].experience = temp;
+            }
 
             saveDoctors();
 
-            cout << "\nDoctor Updated Successfully!\n";
+            cout << "\n✓ Doctor Updated Successfully!\n";
             break;
         }
     }
 
     if(!found)
-        cout << "\nDoctor Not Found!\n";
+        cout << "\n⚠ Doctor with ID '" << id << "' not found!\n";
 }
 
+/*    Delete Doctor    */
 
+void deleteDoctor()
+{
+    if(count == 0)
+    {
+        cout << "\n⚠ No Doctors in System!\n";
+        return;
+    }
+
+    string id;
+    bool found = false;
+    char confirm;
+
+    cout << "\nEnter Doctor ID to delete: ";
+    getline(cin, id);
+
+    for(int i = 0; i < count; i++)
+    {
+        if(doctors[i].id == id)
+        {
+            found = true;
+
+            cout << "\n--- Doctor Details ---";
+            cout << "\nName: " << doctors[i].name;
+            cout << "\nSpecialization: " << doctors[i].specialization;
+            
+            cout << "\n\nAre you sure you want to delete this doctor? (y/n): ";
+            cin >> confirm;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if(confirm == 'y' || confirm == 'Y')
+            {
+                // Shift all elements after deleted one
+                for(int j = i; j < count - 1; j++)
+                {
+                    doctors[j] = doctors[j + 1];
+                }
+
+                count--;
+                saveDoctors();
+
+                cout << "\n✓ Doctor Deleted Successfully!\n";
+            }
+            else
+            {
+                cout << "\nDeletion cancelled.\n";
+            }
+            break;
+        }
+    }
+
+    if(!found)
+        cout << "\n⚠ Doctor with ID '" << id << "' not found!\n";
+}
+
+/*    Selection Functions with Validation    */
 
 string selectSpecialization()
 {
-    int c;
-
     cout << "\n========== SPECIALIZATION MENU ==========";
     cout << "\n1. Cardiologist (Heart Specialist)";
     cout << "\n2. Neurologist (Brain/Nervous System)";
@@ -492,7 +627,7 @@ string selectSpecialization()
     cout << "\n10. Radiologist (Imaging/X-Ray)";
     cout << "\nChoice: ";
 
-    cin >> c;
+    int c = getValidChoice(1, 10);
 
     switch(c)
     {
@@ -512,8 +647,6 @@ string selectSpecialization()
 
 string selectDepartment()
 {
-    int c;
-
     cout << "\n========== DEPARTMENT MENU ==========";
     cout << "\n1. Cardiology Department";
     cout << "\n2. Neurology Department";
@@ -527,7 +660,7 @@ string selectDepartment()
     cout << "\n10. Administration";
     cout << "\nChoice: ";
 
-    cin >> c;
+    int c = getValidChoice(1, 10);
 
     switch(c)
     {
@@ -545,13 +678,14 @@ string selectDepartment()
     }
 }
 
-
 string selectAvailability()
 {
-    int c;
     cout << "\n========== AVAILABILITY MENU ==========";
-    cout << "\n1.Available 2.Busy\nChoice: ";
-    cin >> c;
+    cout << "\n1. Available";
+    cout << "\n2. Busy";
+    cout << "\nChoice: ";
+
+    int c = getValidChoice(1, 2);
 
     switch(c)
     {
@@ -561,14 +695,16 @@ string selectAvailability()
     }
 }
 
-
 string selectExperience()
 {
-    int c;
     cout << "\n========== EXPERIENCE MENU ==========";
+    cout << "\n1. 1-2 Years";
+    cout << "\n2. 3-5 Years";
+    cout << "\n3. 5-10 Years";
+    cout << "\n4. 10+ Years";
+    cout << "\nChoice: ";
 
-    cout << "\n 1.1-2 Years\n 2.3-5 Years\n 3.5-10 Years\n 4.10+\nChoice: ";
-    cin >> c;
+    int c = getValidChoice(1, 4);
 
     switch(c)
     {
@@ -582,9 +718,7 @@ string selectExperience()
 
 string selectTiming()
 {
-    int c;
-
-    cout << "\n--- SELECT TIMING ---";
+    cout << "\n========== TIMING MENU ==========";
     cout << "\n1. 08:00 AM - 12:00 PM (Morning Shift)";
     cout << "\n2. 12:00 PM - 04:00 PM (Afternoon Shift)";
     cout << "\n3. 04:00 PM - 08:00 PM (Evening Shift)";
@@ -592,7 +726,7 @@ string selectTiming()
     cout << "\n5. Full Day (24 Hours)";
     cout << "\nChoice: ";
 
-    cin >> c;
+    int c = getValidChoice(1, 5);
 
     switch(c)
     {
