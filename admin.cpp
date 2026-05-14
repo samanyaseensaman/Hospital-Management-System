@@ -1,4 +1,4 @@
-   #include<iostream>
+  #include<iostream>
    #include<fstream>
    #include<string>
    #include<cstring> 
@@ -11,22 +11,22 @@ const string doctorsFile= "doctors.dat";
 const string appointment= "appointment.dat";
   
    
-struct Patient
+struct Patientdd
 {
 int patientID;
 int patientAge;
-char patientName[26];
-char Gender[13];
-char contact[445];
+char patientName[20];
+char Gender[10];
+char contact[15];
 char bloodGroup[10];
 int assignedDoctorID;
 } ;  
    
-struct Doctor
+struct Doctordd
 {
 int doctorid;
-char doctorName[25];
-char speciality[80];
+char doctorName[20];
+char speciality[40];
 char availableDates[20];//11-03-2026
 char contact[15];
 char password[20];   
@@ -38,7 +38,7 @@ struct Notes
 int notesID;	
 int patientID;
 int assignedDoctorID;
-char diagnosis[50770];
+char diagnosis[500];
 char prescription[500];
 char Date[20];
 };   
@@ -63,8 +63,8 @@ int doctorid;
    
 //Global Variables
 
-Doctor currentDoctor;
-Doctor *pDoctor=&currentDoctor;  
+Doctordd currentDoctor;
+Doctordd *pDoctor=&currentDoctor;  
    
 // Utility Functions
 void printLine(char ln='-',int len=45){
@@ -78,10 +78,7 @@ cout<<"Press Enter to continue............";
 cin.ignore();
 cin.get();
 }
-   
-   ////          Doctor
-   ////          Login
-   ////
+ 
 bool doctorLogin(){
 	int ID;
 	char password[20];
@@ -98,8 +95,8 @@ if(!file){
 cout<<"Error!Doctor File not found"<<endl;
 return false;
 }
-Doctor d;
-while(file.read((char*)&d, sizeof(Doctor)))	{
+Doctordd d;
+while(file.read((char*)&d, sizeof(Doctordd)))	{
 
 if (ID==d.doctorid&&strcmp(password, d.password)==0){
 		currentDoctor=d;
@@ -114,21 +111,16 @@ attempts++;
 cout<<"Too many failed attempts access denied!"<<endl; 
 return false;   
 }
-   
-   
-////
-////    Patient Profile 
-////   
-   
+
 void patientProfile(){
 	ifstream file(patientDetails.c_str(), ios::binary);
 	if(!file)
 	{cout<<"There is no patient with such ID"<<endl;
 	return;
 	}
-	Patient d;
+	Patientdd d;
 	bool found=false;
-while(	file.read((char*)&d, sizeof(Patient)))
+while(	file.read((char*)&d, sizeof(Patientdd)))
 if (d.assignedDoctorID==currentDoctor.doctorid)	
 {
 	cout<<"The id of patient is: "<<d.patientID<<endl;
@@ -148,7 +140,6 @@ if(!found)
 	file.close();			
 }  
   
-///search patients
 
 void searchPatients  (){
 int patientid;
@@ -160,9 +151,9 @@ cin>>patientid;
 	{cout<<"There is no patient with such ID"<<endl;
 	return;
 	}
-	Patient q;
+	Patientdd q;
 	bool found=false;
-while(	file.read((char*)&q, sizeof(Patient)))
+while(	file.read((char*)&q, sizeof(Patientdd)))
 if (q.patientID==patientid&&q.assignedDoctorID==currentDoctor.doctorid)	
 {
 	cout<<"Patient's age is: " <<q.patientAge<<endl;
@@ -178,10 +169,7 @@ if(!found)
 	}	
 	file.close();		
 }
-  
-/////  
- ////Check appointments
- ////
+
 void checkAppointment  (){
 int id;
 cout<<"Enter id of patient to see appointments"<<endl;
@@ -210,9 +198,7 @@ if(!found)
 }
 file.close();		
 }
-///   
-///  Assignment book
-///
+
   
 void AppointmentUpdate (){
 int assId;
@@ -244,10 +230,6 @@ break;
 }
 file.close();		
 }
-  
-////
-///Notes
-/// 
 
  
  void addnotes(){
@@ -260,8 +242,8 @@ cin>>patientid;
 	return;
 	}
 	bool found=false;
-	Patient d;
-while(	file.read((char*)&d, sizeof(Patient))){
+	Patientdd d;
+while(	file.read((char*)&d, sizeof(Patientdd))){
 
 if (d.patientID==patientid&&d.assignedDoctorID==currentDoctor.doctorid)	
 {
@@ -302,13 +284,7 @@ cin>>n.prescription;
 cout<<"Notes saved successfuly"<<endl;
 } 
   
-  
- //
- /// view notes
- /// 
-  
-    
- 
+
 void viewNotes  (){
 int id;
 cout<<"Enter id of patient to see appointments"<<endl;
@@ -389,7 +365,7 @@ if(!found)
 file.close();		
 }
  
-     void doctorModule  (){
+void adminModule(){
      	printLine();
      	cout<<"----------Doctor Module------------"<<endl;
      	printLine();
@@ -446,41 +422,6 @@ if (choice!=0){
 }
 
 
-void dummyPatients(){
-    ofstream file(patientDetails.c_str(), ios::binary);
 
-    Patient p1 = {1, 20, "Shazia", "M", "03001111111", "A+", 1};
-    Patient p2 = {2, 99, "Sobia Usman", "F", "03002222222", "B+", 2};
-
-    file.write((char*)&p1, sizeof(Patient));
-    file.write((char*)&p2, sizeof(Patient));
-
-    file.close();
-}
-
-void dummyDoctors(){
-    ofstream file(doctorsFile.c_str(), ios::binary);
-
-    Doctor d1 = {1, "Alia", "Heart", "12-05-2026", "030000000000", "1234"};
-    Doctor d2 = {2, "Horse", "Skin", "13-05-2026", "0311111111111", "5678"};
-
-    file.write((char*)&d1, sizeof(Doctor));
-    file.write((char*)&d2, sizeof(Doctor));
-
-    file.close();
-}
-
-int main(){
-	    dummyDoctors();
-    dummyPatients();
-
-	
-if (doctorLogin())
-{
-	doctorModule  ();
-}
- 
-else cout<<"Login Failed!";
-    return 0;
     
 }
