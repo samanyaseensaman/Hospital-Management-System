@@ -1,22 +1,11 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
-#include <ctime>
-#include <sstream> // had to add this for csv handling
+
 using namespace std;
-// some bugs are left to fix, and the csv accessing problem still persists, thora time or lagay ga
-// everyone can check and tell me whatevers wrong
 
-//functions
-
-// void PateintInfo();
-// void dischargePatient();
-// void admitPatient();
-// void availableBeds();
-// void BillOfPatient();
-//void displayAllPatients();
-
-// changes made because structs are allowed now  ~~~~~~~~~~~~~~~~~~
+//save to csv has some issues. it doesnt load from there unlike expected after exiting once. we need to add the fstream file opener for it 
 
 struct Patient {
     int patientID;
@@ -28,60 +17,61 @@ struct Patient {
     double totalBill;
 };
 
-// Struct to manage the hospital operations
 struct PatientManager {
     int TOTAL_HOSPITAL_BEDS = 20;
-    Patient patients[20]; 
-    int patientCount = 0; 
-    
+    Patient patients[20];
+
     double RATE_PER_DAY = 500.0;
     string FILENAME = "patientsinfo.csv";
-// had to change the function and use sstream for easier and better execution.
-  int displayAllPatients() {
-        // Load patients from CSV aahhhhhg ajeeb kam. done anyways
+    int patientCount = 0;
+
+    int displayAllPatients() {
+        // Load patients from CSV 
         ifstream file(FILENAME);
         if (!file.is_open()) {
             cout << "Error opening file\n";
             return 1;
         }
 
-        patientCount = 0; // reset before loading
+        patientCount = 0; 
 
         string line;
         while (getline(file, line)) {
             if (line.empty()) continue;
             if (patientCount >= TOTAL_HOSPITAL_BEDS) break;
 
-            string token;
+     
+            string val;
             stringstream ss(line);
             Patient p{};
 
            
-            if (!getline(ss, token, ',')) continue;
-            p.patientID = stoi(token);
+            if (!getline(ss, val, ',')) continue;    // basically reads each line and assigns value between the commas to the patientID
+            p.patientID = stoi(val);
+
+            
+            if (!getline(ss, val, ',')) val = ""; //ss acts as a pointer as well as it shifts the cursor after reading value like *ptr++
+            p.name = val;   // matlab pointers are covered in this project 💪💪💪
+
+          
+            if (!getline(ss, val, ',')) val = "0";
+            p.age = stoi(val);   //stoi converts the strings to ints because stringstream reads all values as a string
 
            
-            if (!getline(ss, token, ',')) token = "";
-            p.name = token;
+            if (!getline(ss, val, ',')) val = "";
+            p.disease = val;
 
             
-            if (!getline(ss, token, ',')) token = "0";
-            p.age = stoi(token);
-
-         
-            if (!getline(ss, token, ',')) token = "";
-            p.disease = token;
-
-            if (!getline(ss, token, ',')) token = "";
-            p.bloodGroup = token;
-
-            // 6) admissionDate
-            if (!getline(ss, token, ',')) token = "";
-            p.admissionDate = token;
+            if (!getline(ss, val, ',')) val = "";
+            p.bloodGroup = val;
 
             
-            if (getline(ss, token, ',')) {
-                p.totalBill = token.empty() ? 0.0 : stod(token);
+            if (!getline(ss, val, ',')) val = "";
+            p.admissionDate = val;
+
+
+            if (getline(ss, val, ',')) {
+                p.totalBill = val.empty() ? 0.0 : stod(val);  //ternary operator to make things compact
             } else {
                 p.totalBill = 0.0;
             }
@@ -100,19 +90,19 @@ struct PatientManager {
                  << "blood group: " << patients[i].bloodGroup << "\n"
                  << "date of admission: " << patients[i].admissionDate << "\n"
                  << "total bill for stay: $" << patients[i].totalBill << "\n";
-                cout<<endl;
+                 cout<<endl;
         }
         cout << "--------------------------------------------------------------------------------\n";
         return 0;
     }
 
-void savePatients() {
+    void savePatients() {
         ofstream file(FILENAME);
         if (!file.is_open()) {
             cout << "Error: Could not save data to file.\n";
             return;
         }
-        for (int i = 0; i < patientCount; i++) {
+        for (int i = 0; i < patientCount; i++) {    //saves data to the csv file and separates them by commas beforehand
             file << patients[i].patientID << ","
                  << patients[i].name << ","
                  << patients[i].age << ","
@@ -124,7 +114,6 @@ void savePatients() {
         file.close();
     }
 
-  
     void PateintInfo() {
         int searchID;
         cout << "\nEnter Patient ID to search: ";
@@ -147,8 +136,6 @@ void savePatients() {
         cout << "Patient with ID " << searchID << " not found.\n";
     }
 
-  
-
     void dischargePatient() {
         int dischargeID;
         cout << "\nEnter Patient ID to discharge: ";
@@ -157,28 +144,25 @@ void savePatients() {
         for (int i = 0; i < patientCount; i++) {
             if (patients[i].patientID == dischargeID) {
                 cout << "Patient " << patients[i].name << " found.\n";
-                
 
                 int daysStayed;
                 cout << "Enter total number of days stayed: ";
                 cin >> daysStayed;
                 patients[i].totalBill = daysStayed * RATE_PER_DAY;
-                
+
                 cout << "Final Bill Generated: $" << patients[i].totalBill << "\n";
                 cout << "Patient successfully discharged.\n";
-                
-                
-                for (int j = i; j < patientCount - 1; j++) {
-                    patients[j] = patients[j + 1];
+
+                for (int j = i; j < patientCount - 1; j++) {    // deletes the memory of given patient and moves the rest up
+                    patients[j] = patients[j + 1];  //the entries below the pateint are moved up
                 }
                 patientCount--;
-                savePatients(); // Update CSV
+                savePatients(); // Updates the record by rewriting whole file, and excludes the discharged one because it doesnt exist in memory again
                 return;
             }
         }
         cout << "Patient with ID " << dischargeID << " not found.\n";
     }
-
 
     void admitPatient() {
         if (patientCount >= TOTAL_HOSPITAL_BEDS) {
@@ -190,9 +174,8 @@ void savePatients() {
         cout << "\n--- Admit New Patient ---\n";
         cout << "Enter Patient ID: ";
         cin >> p.patientID;
-        cin.ignore(); 
+        cin.ignore();
 
-      
         for (int i = 0; i < patientCount; i++) {
             if (patients[i].patientID == p.patientID) {
                 cout << "Error: Patient ID already exists!\n";
@@ -202,42 +185,39 @@ void savePatients() {
 
         cout << "Enter Name: ";
         getline(cin, p.name);
-        
+
         cout << "Enter Age: ";
         while (!(cin >> p.age)) {
-        cout << "Invalid input. enter a number illiterate\n";
-        cin.clear();
-        cin.ignore(1000, '\n');
-     }
+            cout << "Invalid input. enter a number illiterate\n";
+            cin.clear();
+            cin.ignore(1000, '\n');
+        }
 
-        cin.ignore(1000,'\n');
+        cin.ignore(1000, '\n');
         cout << "Enter Disease: ";
         getline(cin, p.disease);
         cout << "Enter Blood Group: ";
         getline(cin, p.bloodGroup);
         cout << "Enter Date of Admission (DD-MM-YYYY): ";
         getline(cin, p.admissionDate);
-        
+
         p.totalBill = 0.0;
 
         patients[patientCount] = p;
         patientCount++;
-        
-        savePatients(); 
+
+        savePatients();
         cout << "Patient " << p.name << " admitted successfully.\n";
     }
 
-    
     void availableBeds() {
         int available = TOTAL_HOSPITAL_BEDS - patientCount;
         cout << "\n--- Bed Availability ---\n";
         cout << "Total Beds: " << TOTAL_HOSPITAL_BEDS << "\n";
         cout << "Occupied Beds: " << patientCount << "\n";
         cout << "Available Beds: " << available << "\n";
-        cout<<endl;
     }
 
-   
     void BillOfPatient() {
         int searchID;
         cout << "\nEnter Patient ID to generate bill: ";
@@ -252,7 +232,7 @@ void savePatients() {
                 cin >> daysStayed;
 
                 patients[i].totalBill = daysStayed * RATE_PER_DAY;
-                savePatients(); 
+                savePatients();
 
                 cout << "Total bill calculated: $" << patients[i].totalBill << "\n";
                 return;
@@ -264,13 +244,12 @@ void savePatients() {
 
 int patientModule() {
     PatientManager hospital;
-    hospital.displayAllPatients(); 
+    hospital.displayAllPatients();
 
     int choice;
     do {
-        
         cout << "    HOSPITAL MANAGEMENT SYSTEM    \n";
-        cout << "==================================\n";
+        cout << "\n==================================\n";
         cout << " 1. Admit Patient\n";
         cout << " 2. View Patient Info\n";
         cout << " 3. Check Available Beds\n";
@@ -280,7 +259,6 @@ int patientModule() {
         cout << "7. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
-        cout<<endl;
 
         switch (choice) {
             case 1:
@@ -309,7 +287,9 @@ int patientModule() {
         }
     } while (choice != 7);
 
-
     return 0;
 }
+
+
+
     
