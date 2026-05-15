@@ -1,70 +1,74 @@
-  #include<iostream>
+   #include<iostream>
    #include<fstream>
    #include<string>
    #include<cstring> 
+   #include <sstream>
+#include <cstdio>
+   #include<limits>
    using namespace std;
         
-const string patientDetails ="patient.dat";
+const string patientDetails ="patient.csv";
 const string schedule= "schedule.dat";
 const string notes ="notes.dat";
-const string doctorsFile= "doctors.dat";
+const string doctorsFile= "doctors.csv";
 const string appointment= "appointment.dat";
   
+struct AdminPatient {
+    string  patientID;
+    string  age;
+    string name;
+    string gender;
+    string contact;
+    string bloodGroup;
+    string disease;
+    string admissionDate;
+    string  assignedDoctorID;
+    string totalBill;
+};
    
-struct Patientdd
+struct AdminDoctor
 {
-int patientID;
-int patientAge;
-char patientName[20];
-char Gender[10];
-char contact[15];
-char bloodGroup[10];
-int assignedDoctorID;
-} ;  
-   
-struct Doctordd
-{
-int doctorid;
-char doctorName[20];
-char speciality[40];
-char availableDates[20];//11-03-2026
-char contact[15];
-char password[20];   
+string doctorid;
+string doctorName;
+string speciality;
+string availableDates;//11-03-2026
+string contact;
+string password;   
+string timing;
+string availability;
+string experience;
 }  ; 
 
    
 struct Notes   
 {
-int notesID;	
-int patientID;
-int assignedDoctorID;
-char diagnosis[500];
-char prescription[500];
-char Date[20];
+string notesID;	
+string patientID;
+string assignedDoctorID;
+string diagnosis;
+string prescription;
+string Date;
 };   
    
 struct Appointment
 {
-int appointmentID;
-int patientID;
-int assignedDoctorID;	
-char Date[20];
-char slot[10];
-char status[20];//done, booked, pending		
+string appointmentID;
+string patientID;
+string assignedDoctorID;	
+string Date;
+string slot;
+string status;//done, booked, pending		
 };   
 
 struct Slot
 {
-char date[20];	
-char slot[10];
-char status[20];// check if slot open, blocked	
-int doctorid;	
+string date;	
+string slot;
+string status;// check if slot open, blocked	
+string doctorid;	
 }  ; 
    
-//Global Variables
-
-Doctordd currentDoctor;
-Doctordd *pDoctor=&currentDoctor;  
+  
    
 // Utility Functions
 void printLine(char ln='-',int len=45){
@@ -78,235 +82,290 @@ cout<<"Press Enter to continue............";
 cin.ignore();
 cin.get();
 }
- 
-bool doctorLogin(){
-	int ID;
-	char password[20];
-	int	attempts=0;
-while (attempts<3){
+   
+   bool adminLogin() {
+    string id, pass;
+    cout << "ADMIN LOGIN\n";
+    cout << "Enter ID: ";
+    cin >> id;
+    cout << "Enter Password: ";
+    cin >> pass;
 
-cout<<"--------Doctor Module Login--------"<<endl;
-cout<<"Enter your Doctor Id"<<endl;
-cin>>ID;
-cout<<"Enter your password"<<endl;
-cin>>password;
-ifstream file(doctorsFile .c_str(),ios::binary);
-if(!file){
-cout<<"Error!Doctor File not found"<<endl;
-return false;
-}
-Doctordd d;
-while(file.read((char*)&d, sizeof(Doctordd)))	{
-
-if (ID==d.doctorid&&strcmp(password, d.password)==0){
-		currentDoctor=d;
-		file.close();
-		return true;
-	}	
-}
-attempts++;
- cout << "Invalid password! Attempts left: " << (3 - attempts) << "\n";
- 
-}  
-cout<<"Too many failed attempts access denied!"<<endl; 
-return false;   
+    // simple static admin check (you can replace later with file)
+    if (id == "admin" && pass == "1234") {
+        return true;
+    }
+    return false;
 }
 
+   
+   
+////
+////    view alll patients
+////   
+   
 void patientProfile(){
-	ifstream file(patientDetails.c_str(), ios::binary);
+	ifstream file(patientDetails);
 	if(!file)
-	{cout<<"There is no patient with such ID"<<endl;
+	{cout<<"Patient File not found"<<endl;
 	return;
 	}
-	Patientdd d;
-	bool found=false;
-while(	file.read((char*)&d, sizeof(Patientdd)))
-if (d.assignedDoctorID==currentDoctor.doctorid)	
+string line;
+	while(getline(file,line)){
+	stringstream ss(line);
+	AdminPatient d;
+	getline(ss,d.patientID,',');
+	getline(ss,d.age,',');
+	getline(ss,d.name,',');
+	getline(ss,d.gender,',');
+	getline(ss,d.contact,',');
+	getline(ss,d.bloodGroup,',');
+	getline(ss,d.disease,',');
+	getline(ss,d.admissionDate,',');
+	getline(ss,d.assignedDoctorID,',');
+	getline(ss,d.totalBill,',');
+	///print patient data
 {
 	cout<<"The id of patient is: "<<d.patientID<<endl;
-	cout<<"Patient's age is: " <<d.patientAge<<endl;
-	cout<< "Patient Nmae is: "<<d.patientName<<endl;
-	cout<< "Patient's gender is: "<<d.Gender<<endl;
+	cout<<"Patient's age is: " <<d.age<<endl;
+	cout<< "Patient Nmae is: "<<d.name<<endl;
+	cout<< "Patient's gender is: "<<d.gender<<endl;
 	cout<< "Patient's Contact no is: "<<d.contact<<endl;
-	cout<<" Patient's blood group is: "<<d. bloodGroup<<endl;
-	cout<<"-------------------------------------------"<<endl;
-	found=true;
+	cout<<" Patient's blood group is: "<<d. bloodGroup<<endl;	
+    cout<<"Disease: "<<d.disease<<endl;
+    cout<<"Admission Date: "<<d.admissionDate<<endl;
+    cout<<"Total Bill: "<<d.totalBill<<endl;
+	printLine();
+	
 	}	
-	
-	
-if(!found)
-{cout<<"No patients assigned to you"<<endl;
-	}
-	file.close();			
+}
+				
 }  
   
 
-void searchPatients  (){
-int patientid;
-cout<<"Enter id of patient you want to search"<<endl;
-cin>>patientid;
+///////view doctors
 
-	ifstream file(patientDetails.c_str(), ios::binary);	
+void doctorsProfile(){
+	ifstream file(doctorsFile);
 	if(!file)
-	{cout<<"There is no patient with such ID"<<endl;
+	{cout<<"Patient File not found"<<endl;
 	return;
 	}
-	Patientdd q;
-	bool found=false;
-while(	file.read((char*)&q, sizeof(Patientdd)))
-if (q.patientID==patientid&&q.assignedDoctorID==currentDoctor.doctorid)	
-{
-	cout<<"Patient's age is: " <<q.patientAge<<endl;
-	cout<< "Patient Nmae is: "<<q.patientName<<endl;
-	cout<< "Patient's gender is: "<<q.Gender<<endl;
-	cout<< "Patient's Contact no is: "<<q.contact<<endl;
-	cout<<" Patient's blood group is: "<<q. bloodGroup<<endl;
-	cout<<"-------------------------------------------"<<endl;
-	found=true;
-	}	
-if(!found)
-{cout<<"No patients assigned to you"<<endl;
-	}	
-	file.close();		
-}
+string line;
+	while(getline(file,line)){
+	stringstream ss(line);
+	AdminDoctor d;
+   getline(ss, d.doctorid, ',');
+        getline(ss, d.doctorName, ',');
+        getline(ss, d.speciality, ',');
+        getline(ss, d.availableDates, ',');
+        getline(ss, d.contact, ',');
+        getline(ss, d.password, ',');
+        getline(ss, d.timing, ',');
+        getline(ss, d.availability, ',');
+        getline(ss, d.experience, ',');
 
+        cout << "ID: " << d.doctorid << "\n";
+        cout << "Name: " << d.doctorName << "\n";
+        cout << "Speciality: " << d.speciality << "\n";
+        cout << "Availability: " << d.availability << "\n";
+	    printLine();	
+	}					
+}  
+/////  
+ ////Check appointments
+ ////
 void checkAppointment  (){
 int id;
 cout<<"Enter id of patient to see appointments"<<endl;
 cin>>id;
 
-	ifstream file(appointment.c_str(), ios::binary);	
-	if(!file)
+	ifstream file(appointment);	
+  if(!file)
+{cout<<"Notes file not exist"<<endl;
+	return;	}
 	{cout<<"No file Exists"<<endl;
 	return;
 	}
-	Appointment q;
-	bool found=false;
-while(	file.read((char*)&q, sizeof(Appointment)))
-if (q.patientID==id&&q.assignedDoctorID==currentDoctor.doctorid)	
-{
-	cout<< "Patient ID is: "<<q.patientID<<endl;
-	cout<< "Booked slot is: "<<q.slot<<endl;
-	cout<<" Appointment date is: "<<q.Date<<endl;
+	string line;
+	bool found =false;
+	 while(getline(file,line)){
+	Appointment a;
+        stringstream ss(line);
+
+        Appointment a;
+
+        getline(ss,a.appointmentID,',');
+
+        getline(ss,a.patientID,',');
+
+        getline(ss,a.assignedDoctorID,',');
+
+        getline(ss,a.Date,',');
+
+        getline(ss,a.slot,',');
+
+        getline(ss,a.status,',');       
+if (a.patientID == to_string(id)){
+
+    cout<<"\nAppointment ID: "<<a.appointmentID<<endl;
+    cout<<"Status: "<<a.status<<endl;
+	cout<< "Booked slot is: "<<a.slot<<endl;
+	cout<<" Appointment date is: "<<a.Date<<endl;
 	cout<<"-------------------------------------------"<<endl;
 	found=true;
-	}	
-		
+	}
+}
 	
 if(!found)
 {cout<<"No appointment for you"<<endl;
 }
 file.close();		
 }
-
+///   
+///  Assignment book
+///
   
 void AppointmentUpdate (){
-int assId;
-cout<<"Enter assignment ID: "<<endl;
+string assId;
+cout<<"Enter appointment ID: "<<endl;
 cin>>assId;
 
-	fstream file(appointment.c_str(), ios::binary|ios::in|ios::out );
-
+	ifstream file(appointment);
+    ofstream out("out.csv");
 	if(!file)
-	{cout<<"There is no patient with such ID"<<endl;
-	return;
-	}
-Appointment a;
-bool found =false;
-while(	file.read((char*)&a, sizeof(Appointment))){
+	string line;
+	bool found =false;
+	 while(getline(file,line)){
+        stringstream ss(line);
 
-if (a.appointmentID==assId&&a.assignedDoctorID==currentDoctor.doctorid)	
+        Appointment a;
+
+        getline(ss,a.appointmentID,',');
+
+        getline(ss,a.patientID,',');
+
+        getline(ss,a.assignedDoctorID,',');
+
+        getline(ss,a.Date,',');
+
+        getline(ss,a.slot,',');
+
+        getline(ss,a.status,','); 
+
+if (a.appointmentID==assId)	
 {
-strcpy(a.status,"confirmed");
-file.seekp(-(long) sizeof (Appointment),ios::cur);
-	file.write((char*)&a, sizeof(Appointment));
+a.status="confirmed";
 found=true;
-cout<<"Appointment is confirmed"<<endl;
-break;
 }
-} 
-  if(!found)
-{cout<<"No appointment booked"<<endl;
+
+
+ out<<a.appointmentID<<","
+    <<a.patientID<<","
+    <<a.assignedDoctorID<<","
+    <<a.Date<<","
+    <<a.slot<<","
+    <<a.status<<"\n";
 }
-file.close();		
+
+file.close();
+out.close();
+
+remove("appointment.dat");
+rename("out.csv","appointment.dat");
+ 
+  if(found)
+cout<<"No appointment booked";
+
+else
+cout<<"appointment booked";	
 }
+  
+////
+///Notes
+/// 
 
  
  void addnotes(){
- 	int patientid;
- 	cout<<"Enter id of patient you want to add notes"<<endl;
-cin>>patientid;
-	ifstream file(patientDetails.c_str(), ios::binary);
-	if(!file)
-	{cout<<"There is no patient with such ID"<<endl;
-	return;
-	}
-	bool found=false;
-	Patientdd d;
-while(	file.read((char*)&d, sizeof(Patientdd))){
-
-if (d.patientID==patientid&&d.assignedDoctorID==currentDoctor.doctorid)	
-{
-found=true;
-break;
-}	
-}
-file.close();
-if(!found)
-{cout<<"No patients assigned to you"<<endl;
-return;
-}			
  Notes n;
-  n.patientID = patientid;
- 
- cin.ignore();
- 
- n.assignedDoctorID=currentDoctor.doctorid;
+ string ID;	
+ cout<<"Enter Patient Id"<<endl;
+ cin>>ID;
+ n.patientID = ID;
  cout<<" Notes ID"<<endl;
  cin>>n.notesID;
+ cin.ignore();
  cout<<"Disease diagnosis "<<endl; 
  cin>> n.diagnosis;
-
-  cout<<"prescription is "<<endl;
-cin>>n.prescription;
+ cout<<"prescription is "<<endl;
+ cin>>n.prescription;
 
   cout<<"Date is "<<  n.Date<<endl;
  cin>>n.Date;
- 
- 
-	ofstream infile(notes.c_str(), ios::binary|ios::app);
-  
+	ofstream infile(notes,ios::app);
+	 infile<<n.notesID<<","
+        <<n.patientID<<","
+        <<n.diagnosis<<","
+        <<n.prescription<<","
+        <<n.Date<<"\n";
+
+    infile.close();
+
+    cout<<"Notes Saved.\n";  
   if(!infile)
-{cout<<"notes file not exist"<<endl;
+{cout<<"Notes file not exist"<<endl;
 	return;	}
-			infile.write((char*)&n, sizeof(Notes));
 			infile.close();
-cout<<"Notes saved successfuly"<<endl;
+cout<<"Notes saved"<<endl;
 } 
   
-
+  
+ //
+ /// view notes
+ /// 
+  
+    
+ 
 void viewNotes  (){
 int id;
-cout<<"Enter id of patient to see appointments"<<endl;
+cout<<"Enter id of patient"<<endl;
 cin>>id;
-
-	ifstream file(notes.c_str(), ios::binary);	
+	ifstream file(notes);	
 	if(!file)
 	{cout<<"No notes exists"<<endl;
 	return;
 	}
-	Notes q;
-	bool found=false;
-while(	file.read((char*)&q, sizeof(Notes)))
-if (q.patientID==id&&q.assignedDoctorID==currentDoctor.doctorid)	
+	    string line;
+
+    bool found=false;
+
+    while(getline(file,line)){
+
+        stringstream ss(line);
+
+        Notes n;
+
+        getline(ss,n.notesID,',');
+
+        getline(ss,n.patientID,',');
+
+        getline(ss,n.assignedDoctorID,',');
+
+        getline(ss,n.diagnosis,',');
+
+        getline(ss,n.prescription,',');
+
+        getline(ss,n.Date,',');
+if (n.patientID == to_string(id))	
 {
-	cout<< "Patient ID is: "<<q.patientID<<endl;
-	cout<<"Disease diagnosis: "<< q.diagnosis <<endl; 
-    cout<<"prescription is "<<q.prescription<<endl;
-	cout<<" Appointment date is: "<<q.Date<<endl;
-	cout<<"-------------------------------------------"<<endl;
+	cout<< "Patient ID is: "<<n.patientID<<endl;
+	cout<<"Disease diagnosis: "<< n.diagnosis <<endl; 
+    cout<<"prescription is "<<n.prescription<<endl;
+	cout<<" Appointment date is: "<<n.Date<<endl;
+	printLine();
 	found=true;
-}		
+}
+}
 if(!found)
 {cout<<"No saved notes here"<<endl;
 }
@@ -314,99 +373,39 @@ file.close();
 }
   
   
+
  
- void availabilityCheck()
-{
-  Slot s; 
- cin.ignore();
- 
- s.doctorid=currentDoctor.doctorid;
- cout<<"Enter time slot"<<endl;
- cin>>s.slot;
- cout<<"Enter status of slot booked or not"<<endl; 
- cin>> s.status;                                                           
-  cout<<"Date is "<< s.date<<endl;
- cin>>s.date;
- 
- 
-	ofstream file(schedule.c_str(), ios::app);
-  
-  if(!file)
-{cout<<"schedule exist"<<endl;
-	return;	}
-				file.write((char*)&s, sizeof(Slot));
-			file.close();
-cout<<"Schedule saved successfuly"<<endl;
-}  
- 
- 
- void checkShecdule  (){
-	ifstream file(schedule.c_str(), ios::binary);	
-	if(!file)
-	{cout<<"No file Exists"<<endl;
-	return;
-	}
-	Slot q;
-	bool found=false;
-while(	file.read((char*)&q, sizeof(Slot)))
-if (q.doctorid==currentDoctor.doctorid)	
-{
-	cout<< "Booked slot is: "<<q.slot<<endl;
-	cout<<" Appointment date is: "<<q.date<<endl;
-	cout<<"Appointment Staus: "<<q.status<<endl;
-	cout<<"-------------------------------------------"<<endl;
-	found=true;
-	}	
-		
-	
-if(!found)
-{cout<<"No appointment for you"<<endl;
-}
-file.close();		
-}
- 
-void adminModule(){
+     void adminModule  (){
      	printLine();
-     	cout<<"----------Doctor Module------------"<<endl;
+     	cout<<"----------Admin Module------------"<<endl;
      	printLine();
      	int choice;
      	
 do{
-cout<<"choice==1: View Patients Profile"<<endl;
-cout<<"choice==2: Search Patient by ID"<<endl;
-cout<<"choice==3: Check Appointments"<<endl;
-cout<<"choice==4: Confirm Appointments"<<endl;
-cout<<"choice==5: Add Notes "<<endl;
-cout<<"choice==6: View notes"<<endl;
-cout<<"choice==7: Add availability"<<endl;
-cout<<"choice==8: Check Shecdule"<<endl;
+cout<<"1: View Patients Profile"<<endl;
+cout<<"2: Check Appointments"<<endl;
+cout<<"3: Confirm Appointments"<<endl;
+cout<<"4: Add Notes "<<endl;
+cout<<"5: View notes"<<endl;
+
 cout<<"choice==0  Logout"<<endl;
 cout<<"Enter choice"<<endl;	
 cin>>choice;     	     		
 switch(choice){
 	case 1:
     patientProfile();
-	break;  	     	 	
+	break;  	     	 		     		
     case 2:
-    searchPatients  ();
-	break;  	     		
-    case 3:
 	checkAppointment  () ;	     	
     break;  	
-    case 4:
+    case 3:
 	AppointmentUpdate ();
 	break; 	
-    case 5:
+    case 4:
 	addnotes();
 	break;
-	case 6: 	
+	case 5: 	
     viewNotes  ();
-	break;
-	case 7:
-	availabilityCheck();
-	break;	
-	case 8:
-	checkShecdule  ();
 	break;
 	case 0:
 	cout<<"Exiting Module......" <<endl;
@@ -421,7 +420,15 @@ if (choice!=0){
 }while(choice!=0);
 }
 
+int main(){
 
-
+	
+if (adminLogin())
+{
+	adminModule  ();
+}
+ 
+else cout<<"Login Failed!";
+    return 0;
     
 }
