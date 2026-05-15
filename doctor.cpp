@@ -44,35 +44,7 @@ string selectAvailability();
 string selectExperience();
 string selectTiming();
 
-/* Main function */
 
-int main() {                          //USE LOADDOCTORS IN BEGINNING OF MAIN AND DELETE[]DOCTORS AT END 
-
-    loadDoctors(); //loads doctors into memory
-
-    int choice;
-
-    do {
-        cout << "\n===== HOSPITAL MANAGEMENT SYSTEM =====";
-        cout << "\n1. Doctor Module";
-        cout << "\n0. Exit";
-        cout << "\nEnter choice: ";
-        choice = getValidChoice(0, 1);
-
-        switch(choice) {
-            case 1:
-                doctorMenu();
-                break;
-            case 0:
-                cout << "\nExiting system...\n";
-                break;
-        }
-
-    } while(choice != 0);
-
-    delete[] doctors;
-    return 0;
-}
 
 /*    Definition of Functions    */
 
@@ -260,6 +232,7 @@ void saveDoctors()
 
 void doctorMenu()
 {
+    loadDoctors();
     int choice;
 
     do {
@@ -307,6 +280,8 @@ void addDoctor()
 
     newDoc.id = getValidDoctorID();
 
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    
     cout << "Enter Name: ";
     getline(cin, newDoc.name);
 
