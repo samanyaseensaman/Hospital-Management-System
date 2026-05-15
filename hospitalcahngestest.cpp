@@ -31,7 +31,6 @@ struct Patient {
 };
 
 // Notes are written by doctors only
-// CSV format: notesID, doctorID, patientID, diagnosis, prescription, date
 struct Notes {
     string notesID;
     string doctorID;
