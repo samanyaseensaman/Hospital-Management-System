@@ -325,11 +325,11 @@ void viewDoctors() {
     for (int i = 0; i < doctorCount; i++) {
         cout << "\n[" << (i+1) << "] ID: " << doctors[i].id
              << "  Name: "           << doctors[i].name
-             << "  Spec: "           << doctors[i].specialization
-             << "  Dept: "           << doctors[i].department
-             << "  Timing: "         << doctors[i].timing
-             << "  Status: "         << doctors[i].availability
-             << "  Exp: "            << doctors[i].experience << "\n";
+             << " \nSpecialization: "           << doctors[i].specialization
+             << " \nDepartment: "           << doctors[i].department
+             << " \nTiming: "         << doctors[i].timing
+             << " \nStatus: "         << doctors[i].availability
+             << " \nExperience: "            << doctors[i].experience << "\n";
     }
 }
 
@@ -697,12 +697,12 @@ struct PatientManager {
         cout << "\n===== PATIENTS (" << patientCount << "/" << TOTAL_HOSPITAL_BEDS << " beds) =====\n";
         for (int i = 0; i < patientCount; i++) {
             cout << "ID:"       << patients[i].patientID
-                 << " | Name:"  << patients[i].name
-                 << " | Age:"   << patients[i].age
-                 << " | Disease:" << patients[i].disease
-                 << " | Blood:" << patients[i].bloodGroup
-                 << " | Admitted:" << patients[i].admissionDate
-                 << " | Bill:$" << patients[i].totalBill << "\n";
+                 << " \n Name:"  << patients[i].name
+                 << " \n Age:"   << patients[i].age
+                 << " \n Disease:" << patients[i].disease
+                 << " \n Blood:" << patients[i].bloodGroup
+                 << " \n Admitted:" << patients[i].admissionDate
+                 << " \n Bill:$" << patients[i].totalBill << "\n";
         }
     }
 
