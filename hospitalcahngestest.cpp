@@ -40,7 +40,6 @@ struct Notes {
     string date;
 };
 
-// CSV format: appointmentID, patientID, doctorID, date, slot, status
 struct Appointment {
     string appointmentID;
     string patientID;
@@ -460,8 +459,7 @@ void addPatientNotes(const string& loggedDoctorID) {
 }
 
 void viewPatientNotes(const string& filterDoctorID = "") {
-    // If filterDoctorID is empty, shows all notes (admin use).
-    // If set, only shows notes written by that doctor.
+    // If filterDoctorID is empty, shows all notes (admin use). // removed admin viewnotes option 
     cout << "Enter Patient ID to view notes: ";
     string pid; getline(cin, pid);
 
@@ -594,7 +592,7 @@ void doctorMenu() {
             case 7: if (!myID.empty()) viewPatientNotes(myID);  break;
             case 8: if (!myID.empty()) viewMyPatients(myID);  break;
             case 0: cout << "Returning...\n"; break;
-        }
+        }if (choice != 0) EnterPress();
     } while (choice != 0);
 }
 
@@ -987,7 +985,7 @@ void patientModule() {
             case 2: hospital.bookAppointment(myID);       break;
             case 3: hospital.viewMyAppointments(myID);    break;
             case 0: cout << "Goodbye, " << myName << ".\n"; break;
-        }
+        }if (choice != 0) EnterPress();
     } while (choice != 0);
 }
 
