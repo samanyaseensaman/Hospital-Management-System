@@ -198,9 +198,9 @@ bool patientExists(const string& pid) {
 
 string selectSpecialization() {
     cout << "\n--- Specialization ---\n"
-         << "1.Cardiologist  2.Neurologist  3.Dermatologist  4.Orthopedic Surgeon\n"
-         << "5.Pediatrician  6.General Physician  7.ENT Specialist  8.Gynecologist\n"
-         << "9.Psychiatrist  10.Radiologist\nChoice: ";
+         << "1.Cardiologist\n2.Neurologist\n3.Dermatologist\n4.Orthopedic Surgeon\n"
+         << "5.Pediatrician\n6.General Physician\n7.ENT Specialist\n8.Gynecologist\n"
+         << "9.Psychiatrist\n10.Radiologist\nChoice: ";
     switch (getValidChoice(1, 10)) {
         case 1:  return "Cardiologist";
         case 2:  return "Neurologist";
